@@ -101,5 +101,56 @@ RSpec.describe Cart do
         expect(@cart.count_of(2)).to eq(1)
       end
     end
+
+    it '.discounted_total returns the discounted price w/coupon' do
+      merchant = create(:merchant)
+      coupon_1 = merchant.coupons.create(name: "Half Off", value: 50, coupon_type: 0)
+      item_1 = merchant.items.create(id: 1, name: "Item 1", price: 2.50, description: "Description", image: "image.jpg", inventory: 10)
+      cart = Cart.new({"1" => 3})
+
+      expect(cart.discounted_total(coupon_1.name)).to eq(3.75)
+    end
+
+    it '.discounted_total only reduces price for coupon merchants items' do
+      merchant_1 = create(:merchant)
+      merchant_2 = create(:merchant)
+      coupon_1 = merchant_1.coupons.create(name: "take5", value: 5, coupon_type: 1)
+      item_1 = merchant_1.items.create(id: 1, name: "Item 1", price: 2.50, description: "Description", image: "image.jpg", inventory: 10)
+      item_2 = merchant_2.items.create(id: 2, name: "Item 1", price: 1, description: "Description", image: "image.jpg", inventory: 10)
+      cart = Cart.new({"1" => 3, "2" => 2})
+
+      expect(cart.discounted_total(coupon_1.name)).to eq(4.50)
+    end
+
+    it '.discounted_total will not drop cart price below 0' do
+      merchant_1 = create(:merchant)
+      coupon_1 = merchant_1.coupons.create(name: "take10", value: 10, coupon_type: 1)
+      item_1 = merchant_1.items.create(id: 1, name: "Item 1", price: 2.50, description: "Description", image: "image.jpg", inventory: 10)
+      cart = Cart.new({"1" => 3})
+
+      expect(cart.discounted_total(coupon_1.name)).to eq(0)
+    end
+
+    it '.discounted_total will not apply a $ off discount multiple times' do
+      merchant_1 = create(:merchant)
+      coupon_1 = merchant_1.coupons.create(name: "take10", value: 10, coupon_type: 1)
+      item_1 = merchant_1.items.create(id: 1, name: "Item 1", price: 15, description: "Description", image: "image.jpg", inventory: 10)
+      item_2 = merchant_1.items.create(id: 2, name: "Item 2", price: 20, description: "Description", image: "image.jpg", inventory: 10)
+      cart = Cart.new({"1" => 1, "2" => 1})
+
+      expect(cart.discounted_total(coupon_1.name)).to eq(25)
+    end
+
+    it '.coupon_applied? returns true when coupon applied' do
+      merchant = create(:merchant)
+      coupon_1 = merchant.coupons.create(name: "Half Off", value: 50, coupon_type: 0)
+      item_1 = merchant.items.create(id: 1, name: "Item 1", price: 2.50, description: "Description", image: "image.jpg", inventory: 10)
+      cart = Cart.new({"1" => 3})
+      cart.discounted_total(coupon_1.name)
+
+      expect(cart.coupon_applied?(coupon_1)).to eq(true)
+      expect(cart.coupon_applied?(nil)).to eq(false)
+    end
+
   end
 end

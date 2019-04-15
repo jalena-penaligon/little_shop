@@ -1,0 +1,15 @@
+<%= form_for [@merchant, @coupon], action: :create, url: merchant_coupons_path(@merchant) do |f| %>
+  <%= f.label :name %>
+  <%= f.text_field :name %>
+
+  <%= f.label :value %>
+  <%= f.number_field :value %>
+
+  <%= label :coupon_type, 'Percent Off' %>
+  <%= f.radio_button :coupon_type, :percent %>
+
+  <%= label :coupon_type, 'Dollar Off' %>
+  <%= f.radio_button :coupon_type, :dollar %>
+
+  <%= f.submit "Create Coupon" %>
+<% end %>

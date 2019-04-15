@@ -43,4 +43,37 @@ class Cart
   def subtotal(item)
     count_of(item.id) * item.price
   end
+
+  def discounted_total(coupon_name)
+    discount_total = 0
+    coupon = Coupon.find_by(name: coupon_name)
+    coupon_value = coupon.value
+    self.contents.each do |id, quantity|
+      item = Item.find(id.to_i)
+      if item.user.id == coupon.user.id
+        if coupon.percent_off?
+          current_price = item.price.to_f * quantity
+          price = current_price - (coupon.value.to_f / 100) * current_price
+        elsif coupon.dollar_off?
+          current_price = item.price.to_f * quantity
+          if current_price > coupon_value
+            price = current_price - coupon_value
+            coupon_value = 0
+          else
+            price = 0
+            coupon_value = coupon_value - current_price
+          end
+        end
+        discount_total += price
+      else
+        discount_total += (item.price.to_f * quantity)
+      end
+    end
+    discount_total
+  end
+
+  def coupon_applied?(coupon)
+    coupon != nil
+  end
+
 end

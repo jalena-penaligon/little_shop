@@ -3,6 +3,10 @@
   <p>Your Cart is empty.</p>
 <% else %>
   <h3>Total: <%= number_to_currency(cart.total) %></h3>
+  <% if cart.coupon_applied?(coupon) %>
+    <h3>Discounted Total: <%= number_to_currency(cart.discounted_total(session["coupon_code"])) %></h3>
+  <% end %>
+
   <% if current_user %>
     <%= button_to "Check Out", profile_orders_path, method: :post %>
   <% else %>
@@ -10,6 +14,7 @@
       or <%= link_to "log in", login_path %> to check out.</p>
   <% end %>
   <%= button_to "Empty Cart", empty_cart_path, method: :delete %>
+
   <ul id="items">
     <% cart.items.each do |item, quantity| %>
       <li id="item-<%= item.id %>">
@@ -25,4 +30,13 @@
       </li>
     <% end %>
   </ul>
+
+  <%= form_tag(coupons_path, method: "post") do %>
+    <%= label_tag(:coupon_code, "Coupon Code:") %>
+    <%= text_field_tag(:coupon_code) %>
+    <%= submit_tag("Apply") %>
+  <% end %>
+  <% if cart.coupon_applied?(coupon) %>
+    Applied to Cart: <%= coupon.name %>
+  <% end %>
 <% end %>
