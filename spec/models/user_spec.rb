@@ -86,6 +86,11 @@ RSpec.describe User, type: :model do
       @i7 = create(:item, merchant_id: @m1.id, inventory: 20)
       @i8 = create(:item, merchant_id: @m1.id, inventory: 20)
       @i9 = create(:inactive_item, merchant_id: @m1.id)
+      @c1 = @m1.coupons.create(name: "take10", value: 10, coupon_type: 0)
+      @c2 = @m1.coupons.create(name: "take1", value: 1, coupon_type: 1)
+      @c3 = @m1.coupons.create(name: "take5", value: 5, coupon_type: 1)
+      @c4 = @m1.coupons.create(name: "take20", value: 20, coupon_type: 0)
+      @c5 = @m1.coupons.create(name: "take50", value: 50, coupon_type: 0)
 
       @m2 = create(:merchant)
       @i10 = create(:item, merchant_id: @m2.id, inventory: 20)
@@ -182,6 +187,11 @@ RSpec.describe User, type: :model do
     it '.top_user_by_item_count' do
       expect(@m1.top_user_by_item_count.name).to eq(@u3.name)
       expect(@m1.top_user_by_item_count.quantity).to eq(10)
+    end
+
+    it ".coupon_limit_reached?" do
+      expect(@m1.coupon_limit_reached?).to eq(true)
+      expect(@m2.coupon_limit_reached?).to eq(false)
     end
   end
 

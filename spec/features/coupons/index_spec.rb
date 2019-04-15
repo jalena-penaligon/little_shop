@@ -33,5 +33,30 @@ RSpec.describe 'coupon index' do
         end
       end
     end
+
+    describe 'when I visit my coupons page' do
+      it 'has a button to enable or disable coupons' do
+        merchant = create(:merchant)
+        allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(merchant)
+
+        coupon_1 = merchant.coupons.create(name: "Half Off", value: 50, coupon_type: 0)
+        coupon_2 = merchant.coupons.create(name: "$10 Off", value: 10, coupon_type: 1, active: false)
+        coupon_3 = merchant.coupons.create(name: "10 Percent", value: 10, coupon_type: 0)
+
+        visit merchant_coupons_path(merchant)
+
+        within "#coupon-#{coupon_1.id}" do
+          click_button("Disable")
+          coupon_1.reload
+          expect(coupon_1.active).to eq(false)
+        end
+
+        within "#coupon-#{coupon_2.id}" do
+          click_button("Enable")
+          coupon_2.reload
+          expect(coupon_2.active).to eq(true)
+        end
+      end
+    end
   end
 end

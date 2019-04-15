@@ -18,6 +18,10 @@ class User < ApplicationRecord
     items.where(active: true).order(:name)
   end
 
+  def coupon_limit_reached?
+    self.coupons.count == 5
+  end
+
   def top_items_sold_by_quantity(limit)
     items.joins(order_items: :order)
          .where(order_items: {fulfilled: true}, orders: {status: :shipped})

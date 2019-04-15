@@ -18,7 +18,9 @@ Rails.application.routes.draw do
 
   resources :items, only: [:index, :show]
   resources :merchants, only: [:index] do
-    resources :coupons, only: [:index, :new, :create, :show]
+    resources :coupons do
+      patch '/:coupon_id', to: 'coupons#active_toggle', as: :active_toggle
+    end
   end
   post '/coupons', to: 'coupons#redeem'
 

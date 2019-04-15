@@ -21,6 +21,7 @@ class Order < ApplicationRecord
         .where(status: :pending)
         .where(items: {merchant_id: merchant_id})
         .distinct
+        .order(:id)
   end
 
   def total_quantity_for_merchant(merchant_id)
