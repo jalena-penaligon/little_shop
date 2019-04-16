@@ -211,6 +211,24 @@ RSpec.describe User, type: :model do
       expect(User.default_users).to eq(users)
     end
 
+    it ".existing_customers(merchant)" do
+      merchant = create(:merchant)
+      i1 = create(:item, merchant_id: merchant.id)
+      u1 = create(:user)
+      u2 = create(:user)
+      u3 = create(:user)
+      o1 = create(:shipped_order, user: u1)
+      oi1 = create(:fulfilled_order_item, item: i1, order: o1, created_at: 1.days.ago)
+
+      o2 = create(:shipped_order, user: u2)
+      oi3 = create(:fulfilled_order_item, item: i1, order: o1, created_at: 1.days.ago)
+
+      o3 = create(:shipped_order, user: u2)
+      oi3 = create(:fulfilled_order_item, item: i1, order: o1, created_at: 1.days.ago)
+
+      expect(User.existing_customers(mechant)).to eq([u1, u2])
+    end
+
     describe "statistics" do
       before :each do
         u1 = create(:user, state: "CO", city: "Fairfield")

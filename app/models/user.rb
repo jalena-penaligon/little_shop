@@ -160,4 +160,18 @@ class User < ApplicationRecord
         .order('order_count DESC')
         .limit(limit)
   end
+
+  
+
+  def self.build_existing_customers_csv(users)
+    attributes = %w{name email}
+
+    CSV.generate(headers: true) do |csv|
+      csv << attributes
+
+      users.each do |user|
+        csv << user.attributes.values_at(*attributes)
+      end
+    end
+  end
 end
