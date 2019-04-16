@@ -21,6 +21,7 @@ class Order < ApplicationRecord
         .where(status: :pending)
         .where(items: {merchant_id: merchant_id})
         .distinct
+        .order(:id)
   end
 
   def total_quantity_for_merchant(merchant_id)
@@ -57,7 +58,7 @@ class Order < ApplicationRecord
   end
 
   def self.shipped_orders
-    orders_by_status(:shipped)
+    orders_by_status(:shipped).order(:id)
   end
 
   def self.cancelled_orders

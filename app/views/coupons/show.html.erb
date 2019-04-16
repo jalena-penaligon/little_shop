@@ -1,0 +1,18 @@
+
+<%= @coupon.name %><br />
+<% if @coupon.percent_off? %>
+  Value: <%= @coupon.value %>% Off
+<% elsif @coupon.dollar_off? %>
+  Value: $<%= @coupon.value %> Off
+<% end %>
+
+<%= button_to "Edit", edit_merchant_coupon_path(@merchant, @coupon), method: :get %>
+<% if @coupon.redeemed? == false %>
+  <%= button_to "Delete", merchant_coupon_path(@merchant, @coupon), method: :delete %>
+<% end %>
+
+<% if @coupon.active %>
+  <%= button_to "Disable", merchant_coupon_active_toggle_path(@coupon.user.id, @coupon.id), method: :patch %>
+<% else %>
+  <%= button_to "Enable", merchant_coupon_active_toggle_path(@coupon.user.id, @coupon.id), method: :patch %>
+<% end %>

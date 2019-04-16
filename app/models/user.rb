@@ -12,9 +12,14 @@ class User < ApplicationRecord
 
   # as a merchant
   has_many :items, foreign_key: 'merchant_id'
+  has_many :coupons
 
   def active_items
     items.where(active: true).order(:name)
+  end
+
+  def coupon_limit_reached?
+    self.coupons.count == 5
   end
 
   def top_items_sold_by_quantity(limit)

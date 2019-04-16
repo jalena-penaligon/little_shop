@@ -96,5 +96,91 @@ RSpec.describe 'Profile Orders page', type: :feature do
         expect(page).to have_content("Total Cost: #{number_to_currency(@order.total_cost)}")
       end
     end
+
+    describe 'when an order is placed with a coupon code' do
+      it 'displays code on completed order page' do
+        user = create(:user)
+        allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(user)
+        merchant_1 = create(:merchant)
+        item_1 = create(:item, price: 5, user: merchant_1, inventory: 3)
+        item_2 = create(:item, price: 5, user: merchant_1)
+        coupon = merchant_1.coupons.create(name: "save20", value: 20, coupon_type: 0)
+
+        visit item_path(item_1)
+        click_on "Add to Cart"
+        visit item_path(item_2)
+        click_on "Add to Cart"
+
+        visit cart_path
+
+        fill_in "Coupon Code:", with: "save20"
+        click_button "Apply"
+
+        click_button "Check Out"
+
+        order = Order.last
+
+        visit profile_order_path(order)
+
+        expect(page).to have_content("Total Cost: $8.00")
+        expect(page).to have_content("Coupon Redeemed: save20")
+      end
+
+      it 'calculates the discounted price of the order' do
+        user = create(:user)
+        allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(user)
+        merchant_1 = create(:merchant)
+        item_1 = create(:item, price: 10, user: merchant_1, inventory: 3)
+        item_2 = create(:item, price: 20, user: merchant_1)
+        coupon = merchant_1.coupons.create(name: "save5", value: 5, coupon_type: 1)
+
+        visit item_path(item_1)
+        click_on "Add to Cart"
+        visit item_path(item_2)
+        click_on "Add to Cart"
+
+        visit cart_path
+
+        fill_in "Coupon Code:", with: "save5"
+        click_button "Apply"
+
+        click_button "Check Out"
+
+        order = Order.last
+
+        visit profile_order_path(order)
+
+        expect(page).to have_content("Total Cost: $25.00")
+        expect(page).to have_content("Coupon Redeemed: save5")
+      end
+
+      it 'calculates accurately when the discount is larger than the item price' do
+        user = create(:user)
+        allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(user)
+        merchant_1 = create(:merchant)
+        item_1 = create(:item, price: 10, user: merchant_1, inventory: 3)
+        item_2 = create(:item, price: 20, user: merchant_1)
+        coupon = merchant_1.coupons.create(name: "save20", value: 20, coupon_type: 1)
+
+        visit item_path(item_1)
+        click_on "Add to Cart"
+        visit item_path(item_2)
+        click_on "Add to Cart"
+
+        visit cart_path
+
+        fill_in "Coupon Code:", with: "save20"
+        click_button "Apply"
+
+        click_button "Check Out"
+
+        order = Order.last
+
+        visit profile_order_path(order)
+
+        expect(page).to have_content("Total Cost: $10.00")
+        expect(page).to have_content("Coupon Redeemed: save20")
+      end
+    end
   end
 end

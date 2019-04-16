@@ -17,7 +17,12 @@ Rails.application.routes.draw do
   delete '/cart/items/:id', to: 'cart#remove_item', as: :remove_item
 
   resources :items, only: [:index, :show]
-  resources :merchants, only: [:index]
+  resources :merchants, only: [:index] do
+    resources :coupons do
+      patch '/:coupon_id', to: 'coupons#active_toggle', as: :active_toggle
+    end
+  end
+  post '/coupons', to: 'coupons#redeem'
 
   # User Profile Paths
   get '/profile', to: 'users#show', as: :profile
