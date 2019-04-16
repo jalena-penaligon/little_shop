@@ -58,7 +58,7 @@ class Order < ApplicationRecord
   end
 
   def self.shipped_orders
-    orders_by_status(:shipped)
+    orders_by_status(:shipped).order(:id)
   end
 
   def self.cancelled_orders

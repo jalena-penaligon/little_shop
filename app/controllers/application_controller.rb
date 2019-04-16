@@ -59,4 +59,12 @@ class ApplicationController < ActionController::Base
     minutes = time[-5..-4]
     "#{days} #{pluralize(hours, 'hour')} #{pluralize(minutes, 'minute')}"
   end
+
+  def percent_coupon_applied?(item)
+    coupon != nil && coupon.user.id == item.user.id && coupon.percent_off?
+  end
+
+  def dollar_coupon_applied?(item)
+    coupon != nil && coupon.user.id == item.user.id && coupon.dollar_off?
+  end
 end

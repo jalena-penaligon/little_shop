@@ -12,21 +12,16 @@ RSpec.describe 'create new coupon' do
         click_link("Add a New Coupon")
 
         expect(current_path).to eq(new_merchant_coupon_path(merchant))
-
         fill_in :coupon_name, with: "A Coupon Has No Name"
         fill_in :coupon_value, with: 10
         choose(:coupon_coupon_type_percent)
 
         click_button "Create Coupon"
 
-        coupon = merchant.coupons.last
-
         expect(current_path).to eq(merchant_coupons_path(merchant))
 
-        within "#coupon-#{coupon.id}" do
-          expect(page).to have_content(coupon.name)
-          expect(page).to have_content("Value: 10% Off")
-        end
+        expect(page).to have_content("A Coupon Has No Name")
+        expect(page).to have_content("Value: 10% Off")
       end
 
       it 'will not allow me to add more than 5 coupons' do

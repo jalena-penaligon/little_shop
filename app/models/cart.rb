@@ -52,16 +52,15 @@ class Cart
       item = Item.find(id.to_i)
       if item.user.id == coupon.user.id
         if coupon.percent_off?
-          current_price = item.price.to_f * quantity
-          price = current_price - (coupon.value.to_f / 100) * current_price
+          item_price = coupon.discount_percent_off(item)
+          price = item_price * quantity
         elsif coupon.dollar_off?
-          current_price = item.price.to_f * quantity
-          if current_price > coupon_value
-            price = current_price - coupon_value
-            coupon_value = 0
-          else
-            price = 0
-            coupon_value = coupon_value - current_price
+          item_price = coupon.discount_dollar_off(item, quantity, coupon_value)
+          price = item_price * quantity
+          coupon_value = 0
+          if item_price.class == Array
+            price = item_price[0]
+            coupon_value = item_price[1]
           end
         end
         discount_total += price

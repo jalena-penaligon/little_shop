@@ -5,6 +5,11 @@ class CouponsController < ApplicationController
     @coupons = @merchant.coupons
   end
 
+  def show
+    @merchant = User.find(params[:merchant_id])
+    @coupon = Coupon.find(params[:id])
+  end
+
   def new
     @coupon = Coupon.new
     @merchant = User.find(params[:merchant_id])
@@ -40,9 +45,15 @@ class CouponsController < ApplicationController
 
   def redeem
     if @coupon = Coupon.find_by(name: params[:coupon_code])
-      if @coupon.valid_for_items?(cart)
+      if @coupon.valid_for_items?(cart) && @coupon.valid_for_user?(current_user) && @coupon.active
         session["coupon_code"] = @coupon.name
         flash[:success] = "Your coupon code has been applied."
+        redirect_to cart_path
+      elsif @coupon.valid_for_user?(current_user) == false
+        flash[:danger] = "You have already used this coupon code."
+        redirect_to cart_path
+      elsif @coupon.active == false
+        flash[:danger] = "Coupon is no longer active."
         redirect_to cart_path
       else
         flash[:danger] = "Coupon code is not valid for your cart items."
@@ -68,6 +79,15 @@ class CouponsController < ApplicationController
       flash[:success] = "Your coupon is now enabled."
       redirect_to merchant_coupons_path(@merchant)
     end
+  end
+
+  def destroy
+    @coupon = Coupon.find(params[:id])
+    @merchant = User.find(params[:merchant_id])
+    if @coupon.destroy
+      flash[:success] = "Your coupon has been deleted."
+    end
+    redirect_to merchant_coupons_path(@merchant)
   end
 
   private
