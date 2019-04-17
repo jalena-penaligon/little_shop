@@ -91,5 +91,20 @@ RSpec.describe 'merchant dashboard' do
         expect(current_path).to eq(admin_merchant_items_path(@merchant))
       end
     end
+
+    describe 'shows a link to export customer data' do
+      scenario 'as a merchant' do
+        allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(@merchant)
+        visit dashboard_path
+        expect(page).to have_link('Download Existing Customer Data')
+      end
+    end
+    describe 'shows a link to export potential customer data' do
+      scenario 'as a merchant' do
+        allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(@merchant)
+        visit dashboard_path
+        expect(page).to have_link('Download Potential Customer Data')
+      end
+    end
   end
 end

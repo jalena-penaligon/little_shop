@@ -1,6 +1,14 @@
 class UsersController < ApplicationController
   before_action :require_reguser, except: [:new, :create]
 
+  def index
+    # @users = User.all
+    # respond_to do |format|
+    #   format.html
+    #   format.csv { send_data @users.to_csv }
+    # end
+  end
+
   def new
     @user = User.new
   end
@@ -36,6 +44,10 @@ class UsersController < ApplicationController
       flash.now[:danger] = @user.errors.full_messages
       render :new
     end
+  end
+
+  def download_existing_customers
+    binding.pry
   end
 
   private

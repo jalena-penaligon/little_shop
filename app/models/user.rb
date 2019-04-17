@@ -160,4 +160,86 @@ class User < ApplicationRecord
         .order('order_count DESC')
         .limit(limit)
   end
+
+  def existing_customer_ids
+    items.joins(:order_items)
+    .joins('join orders on orders.id = order_items.order_id')
+    .joins('join users on users.id = orders.user_id')
+    .where(active: true)
+    .order('users.name')
+    .group('users.id')
+    .pluck('users.id')
+  end
+
+  def self.potential_customers(ids)
+    where.not(id: ids)
+    .where(role: 0)
+    .order(:name)
+  end
+
+  def spent_on_items(merchant_id)
+    total_spent = 0
+    orders.each do |order|
+      order.order_items.each do |order_item|
+        if order_item.item.merchant_id == merchant_id
+          total_spent += (order_item.price.to_f * order_item.quantity)
+        end
+      end
+    end
+    total_spent
+  end
+
+  def total_spend
+    total_spent = 0
+    orders.each do |order|
+      order.order_items.each do |order_item|
+        total_spent += (order_item.price.to_f * order_item.quantity)
+      end
+    end
+    total_spent
+  end
+
+  def total_orders
+    orders.count
+  end
+
+  def generate_csv_row(merchant, current_customer = true)
+    row = []
+    row << self.name
+    row << self.email
+    if current_customer == true
+      row << self.spent_on_items(merchant.id).to_f.round(2)
+    else
+      row << self.total_orders
+    end
+    row << self.total_spend.to_f.round(2)
+  end
+
+  def self.build_existing_customers_csv(users, merchant)
+    headers = %w{name email spent_on_your_items all_merchant_spend}
+
+    CSV.generate(headers: true) do |csv|
+      csv << headers
+
+      users.each do |user|
+        if user.active
+          csv << user.generate_csv_row(merchant)
+        end
+      end
+    end
+  end
+
+  def self.build_potential_customers_csv(users, merchant)
+    headers = %w{name email total_orders total_spent}
+
+    CSV.generate(headers: true) do |csv|
+      csv << headers
+
+      users.each do |user|
+        if user.active
+          csv << user.generate_csv_row(merchant, current_customer = false)
+        end
+      end
+    end
+  end
 end
