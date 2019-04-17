@@ -204,7 +204,7 @@ RSpec.describe User, type: :model do
       o1 = create(:shipped_order, user: u1)
       oi1 = create(:fulfilled_order_item, price: 10, quantity: 2, item: i1, order: o1, created_at: 1.days.ago)
 
-      expect(u1.spent_on_items(merchant.id)).to eq(20.0)
+      expect(User.spent_on_items(merchant.id, u1.id).first.total).to eq(20.0)
     end
 
     it ".total_spend" do
@@ -224,7 +224,7 @@ RSpec.describe User, type: :model do
       o2 = create(:shipped_order, user: u1)
       oi2 = create(:fulfilled_order_item, price: 5, quantity: 2, item: i2, order: o2, created_at: 1.days.ago)
 
-      expect(u1.total_spend).to eq(30.0)
+      expect(User.total_spend(u1.id).first.total_spend).to eq(30.0)
     end
 
     it ".total_orders" do
@@ -412,7 +412,7 @@ RSpec.describe User, type: :model do
 
       it ".merchants_sorted_by_revenue" do
         expect(User.merchants_sorted_by_revenue).to eq([@m7, @m6, @m3, @m2, @m1])
-      endatu
+      end
 
       it ".top_merchants_by_revenue()" do
         expect(User.top_merchants_by_revenue(3)).to eq([@m7, @m6, @m3])

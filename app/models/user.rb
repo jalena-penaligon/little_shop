@@ -177,26 +177,19 @@ class User < ApplicationRecord
     .order(:name)
   end
 
-  def spent_on_items(merchant_id)
-    total_spent = 0
-    orders.each do |order|
-      order.order_items.each do |order_item|
-        if order_item.item.merchant_id == merchant_id
-          total_spent += (order_item.price.to_f * order_item.quantity)
-        end
-      end
-    end
-    total_spent
+  def self.spent_on_items(merchant_id, user_id)
+    joins(orders: {order_items: :item})
+    .where("orders.user_id = #{user_id}")
+    .where("items.merchant_id = #{merchant_id}")
+    .select("users.id, sum(order_items.quantity * order_items.price) as total")
+    .group(:id)
   end
 
-  def total_spend
-    total_spent = 0
-    orders.each do |order|
-      order.order_items.each do |order_item|
-        total_spent += (order_item.price.to_f * order_item.quantity)
-      end
-    end
-    total_spent
+  def self.total_spend(user_id)
+    joins(orders: {order_items: :item})
+    .where("orders.user_id = #{user_id}")
+    .select("users.id, sum(order_items.quantity * order_items.price) as total_spend")
+    .group(:id)
   end
 
   def total_orders
@@ -208,11 +201,11 @@ class User < ApplicationRecord
     row << self.name
     row << self.email
     if current_customer == true
-      row << self.spent_on_items(merchant.id).to_f.round(2)
+      row << User.spent_on_items(merchant.id, self.id).first.total.round(2)
     else
       row << self.total_orders
     end
-    row << self.total_spend.to_f.round(2)
+    row << User.total_spend(self.id).first.total_spend.round(2)
   end
 
   def self.build_existing_customers_csv(users, merchant)
