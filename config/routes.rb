@@ -42,6 +42,7 @@ Rails.application.routes.draw do
     resources :orders, only: [:show]
     resources :users do
       get "download_existing_customers.:format", action: :download_existing_customers, on: :collection
+      get "download_potential_customers.:format", action: :download_potential_customers, on: :collection
     end
   end
 

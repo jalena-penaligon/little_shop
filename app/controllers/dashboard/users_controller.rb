@@ -1,23 +1,18 @@
 class Dashboard::UsersController < Dashboard::BaseController
 
   def download_existing_customers
-    @users = User.all.first(5)
-    data = User.build_existing_customers_csv(@users)
+    @merchant = current_user
+    ids = @merchant.existing_customer_ids
+    @users = User.find(ids)
+    data = User.build_existing_customers_csv(@users, @merchant)
     send_data data, type: "text/csv", disposition: "attachment"
   end
 
-  private
-
-  # def build_existing_customers_csv(users)
-  #   attributes = %w{name email}
-  #
-  #   CSV.generate(headers: true) do |csv|
-  #     csv << attributes
-  #
-  #     users.each do |user|
-  #       csv << user.attributes.values_at(*attributes)
-  #     end
-  #   end
-  # end
-
+  def download_potential_customers
+    @merchant = current_user
+    ids = @merchant.existing_customer_ids
+    @users = User.potential_customers(ids)
+    data = User.build_potential_customers_csv(@users, @merchant)
+    send_data data, type: "text/csv", disposition: "attachment"
+  end
 end

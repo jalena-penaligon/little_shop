@@ -9,9 +9,9 @@
     <p>City: <%= @merchant.city %></p>
     <p>State: <%= @merchant.state %></p>
     <p>Zip: <%= @merchant.zip %></p>
-    <%= link_to "View My Coupons", merchant_coupons_path(@merchant) %>
-    <%= link_to "Download Existing Customer Data", {controller: :users, action: :download_existing_customers, format: :csv} %>
-    <%= link_to "Download Potential Customer Data" %>
+    <%= link_to "View My Coupons", merchant_coupons_path(@merchant) %><br />
+    <%= link_to "Download Existing Customer Data", {controller: :users, action: :download_existing_customers, format: :csv} if current_merchant? %><br />
+    <%= link_to "Download Potential Customer Data", {controller: :users, action: :download_potential_customers, format: :csv} if current_merchant? %><br />
     <%= button_to 'Downgrade to User', admin_downgrade_merchant_path(@merchant), method: :patch if current_admin? %>
   </div>
 </div>

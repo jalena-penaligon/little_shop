@@ -193,6 +193,98 @@ RSpec.describe User, type: :model do
       expect(@m1.coupon_limit_reached?).to eq(true)
       expect(@m2.coupon_limit_reached?).to eq(false)
     end
+
+    it ".spent_on_items" do
+      merchant = create(:merchant)
+
+      i1 = create(:item, merchant_id: merchant.id)
+
+      u1 = create(:user)
+
+      o1 = create(:shipped_order, user: u1)
+      oi1 = create(:fulfilled_order_item, price: 10, quantity: 2, item: i1, order: o1, created_at: 1.days.ago)
+
+      expect(u1.spent_on_items(merchant.id)).to eq(20.0)
+    end
+
+    it ".total_spend" do
+      merchant = create(:merchant)
+      other_merchant = create(:merchant)
+
+
+      i1 = create(:item, merchant_id: merchant.id)
+      i2 = create(:item, merchant_id: other_merchant.id)
+
+
+      u1 = create(:user)
+
+      o1 = create(:shipped_order, user: u1)
+      oi1 = create(:fulfilled_order_item, price: 10, quantity: 2, item: i1, order: o1, created_at: 1.days.ago)
+
+      o2 = create(:shipped_order, user: u1)
+      oi2 = create(:fulfilled_order_item, price: 5, quantity: 2, item: i2, order: o2, created_at: 1.days.ago)
+
+      expect(u1.total_spend).to eq(30.0)
+    end
+
+    it ".total_orders" do
+      merchant = create(:merchant)
+      other_merchant = create(:merchant)
+
+
+      i1 = create(:item, merchant_id: merchant.id)
+      i2 = create(:item, merchant_id: other_merchant.id)
+
+
+      u1 = create(:user)
+
+      o1 = create(:shipped_order, user: u1)
+      oi1 = create(:fulfilled_order_item, price: 10, quantity: 2, item: i1, order: o1, created_at: 1.days.ago)
+
+      o2 = create(:shipped_order, user: u1)
+      oi2 = create(:fulfilled_order_item, price: 5, quantity: 2, item: i2, order: o2, created_at: 1.days.ago)
+
+      expect(u1.total_orders).to eq(2)
+    end
+
+    it ".generate_csv_row" do
+      merchant = create(:merchant)
+      other_merchant = create(:merchant)
+
+      i1 = create(:item, merchant_id: merchant.id)
+      i2 = create(:item, merchant_id: other_merchant.id)
+
+      u1 = create(:user)
+      u2 = create(:user)
+
+      o1 = create(:shipped_order, user: u1)
+      oi1 = create(:fulfilled_order_item, price: 10, quantity: 2, item: i1, order: o1, created_at: 1.days.ago)
+
+      o2 = create(:shipped_order, user: u2)
+      oi2 = create(:fulfilled_order_item, price: 5, quantity: 2, item: i2, order: o2, created_at: 1.days.ago)
+
+      expect(u1.generate_csv_row(merchant)).to eq(["#{u1.name}", "#{u1.email}", 20.0, 20.0])
+      expect(u2.generate_csv_row(merchant, current_customer = false)).to eq(["#{u2.name}", "#{u2.email}", 1, 10.0])
+    end
+
+    it ".existing_customer_ids" do
+      merchant = create(:merchant)
+      other_merchant = create(:merchant)
+
+      i1 = create(:item, merchant_id: merchant.id)
+      i2 = create(:item, merchant_id: other_merchant.id)
+
+      u1 = create(:user, id: 1)
+      u2 = create(:user, id: 2)
+
+      o1 = create(:shipped_order, user: u1)
+      oi1 = create(:fulfilled_order_item, price: 10, quantity: 2, item: i1, order: o1, created_at: 1.days.ago)
+
+      o2 = create(:shipped_order, user: u2)
+      oi2 = create(:fulfilled_order_item, price: 5, quantity: 2, item: i2, order: o2, created_at: 1.days.ago)
+
+      expect(merchant.existing_customer_ids).to eq([1])
+    end
   end
 
   describe 'class methods' do
@@ -211,9 +303,60 @@ RSpec.describe User, type: :model do
       expect(User.default_users).to eq(users)
     end
 
-    it ".existing_customers(merchant)" do
+    it '::potential_customers' do
       merchant = create(:merchant)
+      other_merchant = create(:merchant)
+
       i1 = create(:item, merchant_id: merchant.id)
+      i2 = create(:item, merchant_id: other_merchant.id)
+
+      u1 = create(:user, id: 1)
+      u2 = create(:user, id: 2)
+
+      o1 = create(:shipped_order, user: u1)
+      oi1 = create(:fulfilled_order_item, price: 10, quantity: 2, item: i1, order: o1, created_at: 1.days.ago)
+
+      o2 = create(:shipped_order, user: u2)
+      oi2 = create(:fulfilled_order_item, price: 5, quantity: 2, item: i2, order: o2, created_at: 1.days.ago)
+      ids = merchant.existing_customer_ids
+      expect(User.potential_customers(ids)).to eq([u2])
+    end
+
+    it '::build_existing_customers_csv' do
+      merchant = create(:merchant)
+      other_merchant = create(:merchant)
+      i1 = create(:item, merchant_id: merchant.id)
+      i2 = create(:item, merchant_id: other_merchant.id)
+      u1 = create(:user)
+      u2 = create(:user)
+      u3 = create(:user)
+
+      o1 = create(:shipped_order, user: u1)
+      oi1 = create(:fulfilled_order_item, price: 10, quantity: 2, item: i1, order: o1, created_at: 1.days.ago)
+
+      o2 = create(:shipped_order, user: u2)
+      oi2 = create(:fulfilled_order_item, price: 10, quantity: 1, item: i1, order: o2, created_at: 1.days.ago)
+
+      o3 = create(:shipped_order, user: u2)
+      oi3 = create(:fulfilled_order_item, price: 10, quantity: 3, item: i1, order: o3, created_at: 1.days.ago)
+
+      o4 = create(:shipped_order, user: u1)
+      oi4 = create(:fulfilled_order_item, price: 5, quantity: 1, item: i2, order: o4, created_at: 1.days.ago)
+
+      o5 = create(:shipped_order, user: u2)
+      oi5 = create(:fulfilled_order_item, price: 5, quantity: 2, item: i2, order: o5, created_at: 1.days.ago)
+
+      ids = merchant.existing_customer_ids
+      users = User.find(ids)
+
+      expect(User.build_existing_customers_csv(users, merchant)).to eq("name,email,spent_on_your_items,all_merchant_spend\nUser Name 1,user_1@gmail.com,20.0,25.0\nUser Name 2,user_2@gmail.com,40.0,50.0\n")
+    end
+
+    it '::build_potential_customers_csv' do
+      merchant = create(:merchant)
+      merchant_2 = create(:merchant)
+      i1 = create(:item, merchant_id: merchant.id)
+      i2 = create(:item, merchant_id: merchant_2.id)
       u1 = create(:user)
       u2 = create(:user)
       u3 = create(:user)
@@ -221,12 +364,18 @@ RSpec.describe User, type: :model do
       oi1 = create(:fulfilled_order_item, item: i1, order: o1, created_at: 1.days.ago)
 
       o2 = create(:shipped_order, user: u2)
-      oi3 = create(:fulfilled_order_item, item: i1, order: o1, created_at: 1.days.ago)
+      oi3 = create(:fulfilled_order_item, item: i1, order: o2, created_at: 1.days.ago)
 
       o3 = create(:shipped_order, user: u2)
-      oi3 = create(:fulfilled_order_item, item: i1, order: o1, created_at: 1.days.ago)
+      oi3 = create(:fulfilled_order_item, item: i1, order: o3, created_at: 1.days.ago)
 
-      expect(User.existing_customers(mechant)).to eq([u1, u2])
+      o4 = create(:shipped_order, user: u3)
+      oi4 = create(:fulfilled_order_item, item: i2, order: o4, created_at: 1.days.ago)
+
+      ids = merchant.existing_customer_ids
+      users = User.potential_customers(ids)
+
+      expect(User.build_potential_customers_csv(users, merchant)).to eq("name,email,total_orders,total_spent\nUser Name 3,user_3@gmail.com,1,75.0\n")
     end
 
     describe "statistics" do
@@ -263,7 +412,7 @@ RSpec.describe User, type: :model do
 
       it ".merchants_sorted_by_revenue" do
         expect(User.merchants_sorted_by_revenue).to eq([@m7, @m6, @m3, @m2, @m1])
-      end
+      endatu
 
       it ".top_merchants_by_revenue()" do
         expect(User.top_merchants_by_revenue(3)).to eq([@m7, @m6, @m3])
